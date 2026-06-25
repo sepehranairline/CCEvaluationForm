@@ -494,25 +494,36 @@
     }
 
     @media print {
+      html,
       body {
-        background: #fff;
+        width: auto;
+        min-height: auto;
+        margin: 0;
         padding: 0;
+        background: #fff;
         color: #000;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
       }
       .page {
-        max-width: 210mm;
-        margin: 0 auto;
+        width: auto;
+        max-width: none;
+        margin: 0;
         border: none;
         box-shadow: none;
         background: #fff;
+        overflow: visible !important;
       }
       .table-wrapper {
         overflow: visible !important;
       }
       .eval-table {
-        table-layout: fixed;
         width: 100%;
-        min-width: 0;
+        min-width: 0 !important;
+        table-layout: auto !important;
+        border-collapse: collapse;
+        border-spacing: 0;
       }
       .eval-table thead {
         display: table-header-group;
@@ -520,17 +531,41 @@
       .eval-table tbody {
         display: table-row-group;
       }
-      .eval-table thead th:first-child,
-      .eval-table td.num {
-        width: 28px;
+      .eval-table thead th,
+      .eval-table td {
+        padding: 7px 9px;
+        font-size: 10px;
+        vertical-align: middle;
       }
-      .eval-table thead th:nth-child(2),
-      .eval-table td.criteria {
-        width: auto;
+      .eval-table thead th {
+        background: #1C1C1E;
+        color: #fff;
       }
       .eval-table thead th.score-col,
       .eval-table td.score-col {
         width: 44px;
+      }
+      .eval-table td.num {
+        width: 28px;
+      }
+      .eval-table td.criteria {
+        width: auto;
+        min-width: 0;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        hyphens: auto;
+      }
+      .score-boxes {
+        display: inline-flex;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      }
+      .score-box {
+        width: 24px;
+        height: 24px;
       }
       .eval-table tbody tr,
       .eval-table .category-row,
@@ -538,29 +573,131 @@
         page-break-inside: avoid;
         break-inside: avoid;
       }
-      .eval-table tbody tr {
-        page-break-after: auto;
-      }
-      .eval-table thead th,
-      .eval-table td {
-        padding: 9px 12px;
-      }
-      .eval-table td.criteria {
-        white-space: normal;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-      }
       .category-row td {
         background: #F3F4F6;
+        font-size: 9px;
+        padding: 8px 10px;
         page-break-after: avoid;
         page-break-inside: avoid;
         break-inside: avoid;
       }
-      .eval-table tbody tr:hover { background: transparent; }
+      .eval-table tbody tr:hover {
+        background: transparent;
+      }
       .form-footer,
-      .actions {
+      .actions,
+      .section,
+      .form-header {
         page-break-inside: avoid;
         break-inside: avoid;
+      }
+      .actions {
+        display: none;
+      }
+      .section {
+        padding: 16px 10px;
+      }
+      .form-header {
+        padding: 18px 10px 14px;
+      }
+      .form-footer {
+        padding: 12px 10px;
+      }
+      /* Additional targeted print fixes to prevent page-break and scaling issues */
+      /* Remove transforms/scale that can cause browser to rasterize or scale pages */
+      .page, .table-wrapper, .eval-table, .section, .form-header {
+        -webkit-transform: none !important;
+        transform: none !important;
+      }
+
+      /* Hide interactive or floating UI that breaks layout in print */
+      .select-menu, .dropdown-toggle, .actions, .btn-print { display: none !important; }
+
+      /* Prevent CSS grid / flex containers from splitting across pages */
+      .flight-grid, .summary-grid, .sig-row, .level-options {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+      }
+
+      /* Keep category headers attached to the rows beneath them */
+      .category-row {
+        page-break-after: avoid;
+        break-after: avoid;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      /* Strongly prevent table rows from splitting */
+      .eval-table tbody tr {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      /* Ensure the table doesn't auto-scale or force min-width during print */
+      .eval-table {
+        table-layout: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+
+      /* Make criteria text wrap instead of pushing columns */
+      .eval-table td.criteria {
+        hyphens: auto;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      /* Reduce image sizes and avoid them causing page shifts */
+      .form-header img { max-height: 60px; height: auto; }
+
+      /* Ensure inputs print cleanly and avoid clipping */
+      .field-line {
+        background: transparent !important;
+        border-bottom: 1px solid #222 !important;
+      }
+
+      /* Make score boxes stable for print */
+      .score-box { box-sizing: border-box; }
+
+      /* Slightly reduce padding and font-size for print stability */
+      .eval-table thead th, .eval-table td { padding: 6px 8px !important; font-size: 9.5px !important; }
+
+      /* Strong keep-together rules for key sections to minimize orphaned headings and isolated rows */
+      #flight-info,
+      .section.keep-together,
+      .summary-grid,
+      .flight-grid,
+      .sig-row {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-column-break-inside: avoid !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+      }
+
+      /* Ensure category header stays attached to the first data row */
+      .eval-table .category-row,
+      .eval-table .category-row + tr,
+      .eval-table tbody tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+      }
+
+      /* Prevent individual table cells from breaking across pages */
+      .eval-table td,
+      .eval-table th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      /* Reduce orphaned section headings */
+      .section-label h2 {
+        orphans: 2;
+        widows: 2;
+        page-break-after: avoid !important;
       }
     }
 
@@ -603,7 +740,7 @@
   </div>
 
   <!-- SECTION 1: FLIGHT INFORMATION -->
-  <div class="section">
+  <div id="flight-info" class="section">
     <div class="section-label">
       <span class="tag">Section 01</span>
       <h2>Flight Information</h2>
@@ -664,17 +801,26 @@
 
     <div class="table-wrapper">
       <table class="eval-table">
+        <colgroup>
+          <col style="width: 28px;">
+          <col>
+          <col style="width: 44px;">
+          <col style="width: 44px;">
+          <col style="width: 44px;">
+          <col style="width: 44px;">
+          <col style="width: 44px;">
+        </colgroup>
         <thead>
           <tr>
-            <th style="width:28px">#</th>
-          <th>Evaluation Criteria</th>
-          <th class="score-col">1</th>
-          <th class="score-col">2</th>
-          <th class="score-col">3</th>
-          <th class="score-col">4</th>
-          <th class="score-col">5</th>
-        </tr>
-      </thead>
+            <th>#</th>
+            <th>Evaluation Criteria</th>
+            <th class="score-col">1</th>
+            <th class="score-col">2</th>
+            <th class="score-col">3</th>
+            <th class="score-col">4</th>
+            <th class="score-col">5</th>
+          </tr>
+        </thead>
       <tbody>
         <!-- PROFESSIONAL CONDUCT -->
         <tr class="category-row"><td colspan="7">Professional Conduct</td></tr>
@@ -876,7 +1022,7 @@
   </div>
 
   <!-- SECTION 3: STRENGTHS -->
-  <div class="section">
+  <div class="section keep-together">
     <div class="section-label">
       <span class="tag">Section 03</span>
       <h2>Strengths</h2>
@@ -885,7 +1031,7 @@
   </div>
 
   <!-- SECTION 4: AREAS FOR IMPROVEMENT -->
-  <div class="section">
+  <div class="section keep-together">
     <div class="section-label">
       <span class="tag">Section 04</span>
       <h2>Areas for Improvement</h2>
@@ -894,7 +1040,7 @@
   </div>
 
   <!-- SECTION 5: FINAL EVALUATION SUMMARY -->
-  <div class="section">
+  <div class="section keep-together">
     <div class="section-label">
       <span class="tag">Section 05</span>
       <h2>Final Evaluation Summary</h2>
@@ -946,89 +1092,245 @@
 </div>
 
 <!-- PRINT BUTTON -->
-<div class="actions">
-  <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
-</div>
+  <div class="actions">
+    <button id="btn-print" class="btn-print">Print / Save as PDF</button>
+  </div>
 
-<script>
-  // Auto-calculate average score as radio buttons are selected
-  function calcAverage() {
-    const total = 20;
-    let sum = 0, filled = 0;
-    for (let i = 1; i <= total; i++) {
-      const sel = document.querySelector('input[name="q' + i + '"]:checked');
-      if (sel) { sum += parseInt(sel.value); filled++; }
+  <style>
+    /* Validation styles */
+    .input-error {
+      border-bottom-color: var(--red) !important;
+      background: var(--red-light) !important;
     }
-    const avgInput = document.getElementById('avg-score');
-    if (filled > 0) {
-      avgInput.value = (sum / total).toFixed(2);
+    .field-error {
+      box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
     }
-  }
-  document.querySelectorAll('input[type="radio"][name^="q"]').forEach(r => {
-    r.addEventListener('change', calcAverage);
-  });
-
-  const aircraftInput = document.getElementById('aircraft');
-  const aircraftMenu = document.getElementById('aircraft-menu');
-  const aircraftSearch = document.getElementById('aircraft-search');
-  const aircraftOptions = Array.from(document.querySelectorAll('.dropdown-option'));
-  const dropdownField = document.querySelector('.dropdown-field');
-  let selectedAircraft = '';
-
-  function openAircraftMenu() {
-    aircraftMenu.classList.remove('hidden');
-    aircraftSearch.focus();
-    filterAircraftOptions();
-  }
-
-  function closeAircraftMenu() {
-    aircraftMenu.classList.add('hidden');
-    if (!selectedAircraft) {
-      aircraftInput.value = '';
+    .inline-error {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--red);
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
-  }
+    .row-error {
+      background: rgba(155,28,28,0.05) !important;
+    }
+    .row-error .criteria { color: var(--red) !important; }
+    .btn-print[disabled] { opacity: 0.5; cursor: not-allowed; }
+  </style>
 
-  function filterAircraftOptions() {
-    const query = aircraftSearch.value.trim().toLowerCase();
-    let hasVisible = false;
-    aircraftOptions.forEach(option => {
-      const match = option.textContent.toLowerCase().includes(query);
-      option.classList.toggle('hidden', !match);
-      if (match) { hasVisible = true; }
+  <script>
+    // Auto-calculate average score as radio buttons are selected
+    function calcAverage() {
+      const total = 20;
+      let sum = 0, filled = 0;
+      for (let i = 1; i <= total; i++) {
+        const sel = document.querySelector('input[name="q' + i + '"]:checked');
+        if (sel) { sum += parseInt(sel.value); filled++; }
+      }
+      const avgInput = document.getElementById('avg-score');
+      if (filled > 0) {
+        avgInput.value = (sum / total).toFixed(2);
+      } else {
+        avgInput.value = '';
+      }
+    }
+    document.querySelectorAll('input[type="radio"][name^="q"]').forEach(r => {
+      r.addEventListener('change', () => {
+        calcAverage();
+        clearRowError(r.name);
+        updatePrintState();
+      });
     });
-    return hasVisible;
-  }
 
-  function selectAircraft(value) {
-    selectedAircraft = value;
-    aircraftInput.value = value;
-    aircraftSearch.value = value;
-    closeAircraftMenu();
-  }
-
-  aircraftInput.addEventListener('click', openAircraftMenu);
-  aircraftInput.addEventListener('focus', openAircraftMenu);
-  document.querySelector('.dropdown-toggle').addEventListener('click', event => {
-    event.preventDefault();
-    if (aircraftMenu.classList.contains('hidden')) {
-      openAircraftMenu();
-    } else {
-      closeAircraftMenu();
+    // Dropdown aircraft logic (kept existing) -----------------
+    const aircraftInput = document.getElementById('aircraft');
+    const aircraftMenu = document.getElementById('aircraft-menu');
+    const aircraftSearch = document.getElementById('aircraft-search');
+    const aircraftOptions = Array.from(document.querySelectorAll('.dropdown-option'));
+    const dropdownField = document.querySelector('.dropdown-field');
+    let selectedAircraft = '';
+    function openAircraftMenu() { aircraftMenu.classList.remove('hidden'); aircraftSearch.focus(); filterAircraftOptions(); }
+    function closeAircraftMenu() { aircraftMenu.classList.add('hidden'); if (!selectedAircraft) aircraftInput.value = ''; }
+    function filterAircraftOptions() {
+      const query = aircraftSearch.value.trim().toLowerCase();
+      let hasVisible = false;
+      aircraftOptions.forEach(option => { const match = option.textContent.toLowerCase().includes(query); option.classList.toggle('hidden', !match); if (match) hasVisible = true; });
+      return hasVisible;
     }
-  });
+    function selectAircraft(value) { selectedAircraft = value; aircraftInput.value = value; aircraftSearch.value = value; closeAircraftMenu(); clearFieldError(document.getElementById('aircraft')); updatePrintState(); }
+    aircraftInput.addEventListener('click', openAircraftMenu);
+    aircraftInput.addEventListener('focus', openAircraftMenu);
+    document.querySelector('.dropdown-toggle').addEventListener('click', event => { event.preventDefault(); if (aircraftMenu.classList.contains('hidden')) openAircraftMenu(); else closeAircraftMenu(); });
+    aircraftSearch.addEventListener('input', filterAircraftOptions);
+    aircraftOptions.forEach(option => option.addEventListener('click', () => selectAircraft(option.textContent)));
+    document.addEventListener('click', event => { if (!dropdownField.contains(event.target)) closeAircraftMenu(); });
 
-  aircraftSearch.addEventListener('input', filterAircraftOptions);
+    // Validation ------------------------------------------------
+    const requiredFlightIds = ['cc-name','purser-name','flight-num','flight-date','route','aircraft'];
+    const totalCriteria = 20;
 
-  aircraftOptions.forEach(option => {
-    option.addEventListener('click', () => selectAircraft(option.textContent));
-  });
-
-  document.addEventListener('click', event => {
-    if (!dropdownField.contains(event.target)) {
-      closeAircraftMenu();
+    function showInlineMessage(targetEl, msg) {
+      clearInlineMessage(targetEl);
+      const node = document.createElement('div');
+      node.className = 'inline-error';
+      node.textContent = msg;
+      targetEl.parentNode.appendChild(node);
+      return node;
     }
-  });
-</script>
 
-</body>
-</html>
+    function clearInlineMessage(targetEl) {
+      const parent = targetEl.parentNode;
+      if (!parent) return;
+      const existing = parent.querySelector('.inline-error');
+      if (existing) existing.remove();
+    }
+
+    function setFieldError(el, msg) {
+      if (!el) return;
+      el.classList.add('input-error');
+      el.setAttribute('aria-invalid','true');
+      showInlineMessage(el, msg);
+    }
+
+    function clearFieldError(el) {
+      if (!el) return;
+      el.classList.remove('input-error');
+      el.removeAttribute('aria-invalid');
+      clearInlineMessage(el);
+    }
+
+    function setRowError(questionName, msg) {
+      // find any input with that name and locate its row
+      const any = document.querySelector('input[name="' + questionName + '"]');
+      if (!any) return;
+      const tr = any.closest('tr');
+      if (!tr) return;
+      tr.classList.add('row-error');
+      // add message under criteria cell
+      const criteriaCell = tr.querySelector('.criteria');
+      if (criteriaCell) {
+        clearInlineMessage(criteriaCell);
+        const note = document.createElement('div');
+        note.className = 'inline-error';
+        note.textContent = msg;
+        criteriaCell.appendChild(note);
+      }
+    }
+
+    function clearRowError(questionName) {
+      const any = document.querySelector('input[name="' + questionName + '"]');
+      if (!any) return;
+      const tr = any.closest('tr');
+      if (!tr) return;
+      tr.classList.remove('row-error');
+      const criteriaCell = tr.querySelector('.criteria');
+      if (criteriaCell) clearInlineMessage(criteriaCell);
+    }
+
+    function validateForm(silent=false) {
+      const invalid = [];
+
+      // Flight info
+      requiredFlightIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const val = (el.value || '').toString().trim();
+        if (!val) {
+          invalid.push(el);
+          if (!silent) setFieldError(el, 'Required field');
+        } else {
+          clearFieldError(el);
+        }
+      });
+
+      // Textareas
+      document.querySelectorAll('.textarea-field').forEach(ta => {
+        const val = (ta.value || '').trim();
+        if (!val) {
+          invalid.push(ta);
+          if (!silent) setFieldError(ta, 'Please complete this section.');
+        } else {
+          clearFieldError(ta);
+        }
+      });
+
+      // Scores (radio groups)
+      for (let i=1;i<=totalCriteria;i++){
+        const name = 'q' + i;
+        const sel = document.querySelector('input[name="' + name + '"]:checked');
+        if (!sel) {
+          // find first radio element to attach
+          const any = document.querySelector('input[name="' + name + '"]');
+          if (any) invalid.push(any);
+          if (!silent) setRowError(name, 'Score required');
+        } else {
+          clearRowError(name);
+        }
+      }
+
+      return invalid;
+    }
+
+    // Scroll to first invalid
+    function scrollToFirstInvalid() {
+      const first = document.querySelector('.input-error, .row-error');
+      if (first) {
+        const target = first.classList.contains('row-error') ? first : first;
+        // If row-error is on tr, ensure we scroll that tr
+        const tr = first.tagName === 'TR' ? first : first.closest('tr');
+        const elToScroll = tr || first;
+        elToScroll.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    }
+
+    // Live clearing of errors
+    document.querySelectorAll('.field-line, .textarea-field').forEach(el => {
+      el.addEventListener('input', () => { clearFieldError(el); updatePrintState(); });
+    });
+    document.querySelectorAll('input[type="radio"][name^="q"]').forEach(r => {
+      r.addEventListener('change', e => { clearRowError(e.target.name); updatePrintState(); });
+    });
+
+    // Update print button enabled/disabled state
+    const printBtn = document.getElementById('btn-print');
+    function updatePrintState() {
+      const invalid = validateForm(true);
+      if (invalid.length) {
+        printBtn.setAttribute('disabled','disabled');
+      } else {
+        printBtn.removeAttribute('disabled');
+      }
+    }
+    // initial state
+    updatePrintState();
+
+    // Print handler - blocks if invalid and scrolls to first error
+    printBtn.addEventListener('click', (e) => {
+      const invalid = validateForm(false);
+      if (invalid.length) {
+        e.preventDefault();
+        scrollToFirstInvalid();
+        updatePrintState();
+        return false;
+      }
+      // All good - trigger print
+      window.print();
+    });
+
+    // Also validate on form submit via Ctrl+P or browser print event
+    window.addEventListener('beforeprint', (e) => {
+      const invalid = validateForm(false);
+      if (invalid.length) {
+        // canceling print isn't possible programmatically in many browsers;
+        // ensure user sees errors and disable print button
+        updatePrintState();
+        scrollToFirstInvalid();
+      }
+    });
+
+  </script>
+
+  </body>
+  </html>
